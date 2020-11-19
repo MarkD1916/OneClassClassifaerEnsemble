@@ -17,7 +17,7 @@ class OneClassCV(TransformerMixin,BaseEstimator,ClassifierMixin):
         self.noiseLvl=noiseLvl
     def putNoiseInData(self, X, count=10):
         arrayNoise = np.zeros(X.shape)
-        arrayNoise = 2*np.std(X) * np.random.randn(arrayNoise.shape[0] * count, arrayNoise.shape[1]) + np.mean(X)
+        arrayNoise = self.noiseLvl*np.std(X) * np.random.randn(arrayNoise.shape[0] * count, arrayNoise.shape[1]) + np.mean(X)
 
         noiseTarget = [1]*len(arrayNoise)
         return arrayNoise, noiseTarget
