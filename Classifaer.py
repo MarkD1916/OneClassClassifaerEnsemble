@@ -9,15 +9,15 @@ import warnings
 warnings.filterwarnings("ignore")
 
 class OneClassCV(TransformerMixin,BaseEstimator,ClassifierMixin):
-    def __init__(self,classifaer,parameter):
+    def __init__(self,classifaer,parameter,noiseLvl):
         self.classifaer = classifaer
         self.parameter = parameter
         self.verbose = True
         self.clf = None
-
+        self.noiseLvl=noiseLvl
     def putNoiseInData(self, X, count=10):
         arrayNoise = np.zeros(X.shape)
-        arrayNoise = np.std(X) * np.random.randn(arrayNoise.shape[0] * count, arrayNoise.shape[1]) + np.mean(X)
+        arrayNoise = 2*np.std(X) * np.random.randn(arrayNoise.shape[0] * count, arrayNoise.shape[1]) + np.mean(X)
 
         noiseTarget = [1]*len(arrayNoise)
         return arrayNoise, noiseTarget
@@ -32,7 +32,9 @@ class OneClassCV(TransformerMixin,BaseEstimator,ClassifierMixin):
         for par in gridPar:
             clf = model['oneclasscv'].set_params(**par)
             clf.fit(X,y)
+            #print ("predcit on Train")
             predictOnTrain = clf.predict(X)
+            #print("predcit on Noise")
             predictOnNoise = clf.predict(noiseTest)
             scoreTrain.append(accuracy_score(y,predictOnTrain))
             scoreNoise.append(accuracy_score(noiseY,predictOnNoise))
@@ -49,7 +51,7 @@ class OneClassCV(TransformerMixin,BaseEstimator,ClassifierMixin):
         return
 
     def fit(self, X, y):
-        noiseTest, noiseTarget = self.putNoiseInData(X)
+        noiseTest, noiseTarget = self.putNoiseInData(X,self.noiseLvl)
         self.selectBestParameterComb(X,noiseTest,y,noiseTarget)
         self.clf.fit(X,y)
 
@@ -60,6 +62,6 @@ class OneClassCV(TransformerMixin,BaseEstimator,ClassifierMixin):
 
     def predict(self,X):
 
-
+        #print ("Predict on Drugs")
         predict = self.clf.predict(X)
         return predict

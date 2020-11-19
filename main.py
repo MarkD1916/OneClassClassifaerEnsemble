@@ -8,6 +8,7 @@ from sklearn.svm import OneClassSVM
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 from GaussianClassifaer import GaussClassifaer
+from AutoAssociativeNN import AANN
 import numpy as np
 from sklearn.metrics import accuracy_score
 from sklearn.covariance import OAS, MinCovDet,LedoitWolf,EmpiricalCovariance
@@ -46,22 +47,22 @@ Y_data_test1=Y_data_test1[Y_data_test1==1]
 Ynoise[Ynoise!=1]=1
 
 #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-# print ("OneClassSVM")
-# paramGrid1={'nu':np.arange(0.01,1,0.03), 'gamma': [(10**(x*(-1)))/4 for x in range(1,20)],'kernel':['rbf']}
-# model1 =OneClassSVM()
-# mem1 = Pipeline([('features', Features(function="fft", band=[[1,3]])),('scaler', StandardScaler()),
-#                  ('oneclasscv', OneClassCV(Pipeline([('oneclasscv',model1)]),paramGrid1))])
+#print ("OneClassSVM")
+paramGrid1={'nu':np.arange(0.01,1,0.03), 'gamma': [(10**(x*(-1)))/4 for x in range(1,20)],'kernel':['rbf']}
+model1 =OneClassSVM()
+mem1 = Pipeline([('features', Features(function="fft", band=[[1,3]])),('scaler', StandardScaler()),
+                 ('oneclasscv', OneClassCV(Pipeline([('oneclasscv',model1)]),paramGrid1,1))])
 # mem1.fit(X_data_train1[:,[5,7,12],:],Y_data_train1)
 # print (accuracy_score(Ynoise,mem1.predict(Xnoise[:,[5,7,12],:])), "- точность на веществах")
 # #print(mem1.predict(Xnoise[:,[5,7,12],:]))
 # #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #
 # #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-# print ("IsolationForest")
-# paramGrid2={'n_estimators':[x for x in range(100,500,50)], 'contamination':np.arange(0.01,0.5,0.03),'random_state':[0]}
-# model2 =IsolationForest()
-# mem2 = Pipeline([('features', Features(function="fft", band=[[1,3]])),('scaler', StandardScaler()),
-#                  ('oneclasscv', OneClassCV(Pipeline([('oneclasscv',model2)]),paramGrid2))])
+#print ("IsolationForest")
+paramGrid2={'n_estimators':[x for x in range(100,500,50)], 'contamination':np.arange(0.01,0.5,0.03),'random_state':[0]}
+model2 =IsolationForest()
+mem2 = Pipeline([('features', Features(function="fft", band=[[1,3]])),('scaler', StandardScaler()),
+                 ('oneclasscv', OneClassCV(Pipeline([('oneclasscv',model2)]),paramGrid2,1))])
 # mem2.fit(X_data_train1[:,[5,7,12],:],Y_data_train1)
 # print (accuracy_score(Ynoise,mem2.predict(Xnoise[:,[5,7,12],:])))
 # print(mem2.predict(Xnoise[:,[5,7,12],:]), "- точность на веществах")
@@ -69,31 +70,65 @@ Ynoise[Ynoise!=1]=1
 #
 # #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 # print ("Gaussian")
-# paramGrid3={'up_bound':np.arange(0.01,0.16,0.01), 'method':[EmpiricalCovariance(),LedoitWolf(),OAS(),MinCovDet(random_state=0),None]}
-# model3 =GaussClassifaer()
-# mem3 = Pipeline([('features', Features(function="fft", band=[[1,3]])),('scaler', StandardScaler()),
-#                  ('oneclasscv', OneClassCV(Pipeline([('oneclasscv',model3)]),paramGrid3))])
+paramGrid3={'up_bound':np.arange(0.01,0.16,0.01), 'method':[EmpiricalCovariance(),LedoitWolf(),OAS(),MinCovDet(random_state=0),None]}
+model3 =GaussClassifaer()
+mem3 = Pipeline([('features', Features(function="fft", band=[[1,3]])),('scaler', StandardScaler()),
+                 ('oneclasscv', OneClassCV(Pipeline([('oneclasscv',model3)]),paramGrid3,1))])
 # mem3.fit(X_data_train1[:,[5,7,12],:],Y_data_train1)
 # print (accuracy_score(Ynoise,mem3.predict(Xnoise[:,[5,7,12],:])), "- точность на веществах")
 # #print(mem3.predict(Xnoise[:,[5,7,12],:]))
 #
 # #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # print ("LOF")
-# paramGrid4={'n_neighbors':[x for x in range(2, 30, 2)], 'contamination':np.arange(0.01, 0.5, 0.03),'novelty':[True]}
-# model4 =LocalOutlierFactor()
-# mem4 = Pipeline([('features', Features(function="fft", band=[[1,3]])),('scaler', StandardScaler()),
-#                  ('oneclasscv', OneClassCV(Pipeline([('oneclasscv',model4)]),paramGrid4))])
+paramGrid4={'n_neighbors':[x for x in range(2, 30, 2)], 'contamination':np.arange(0.01, 0.5, 0.03),'novelty':[True]}
+model4 =LocalOutlierFactor()
+mem4 = Pipeline([('features', Features(function="fft", band=[[1,3]])),('scaler', StandardScaler()),
+                 ('oneclasscv', OneClassCV(Pipeline([('oneclasscv',model4)]),paramGrid4,1))])
 # mem4.fit(X_data_train1[:,[5,7,12],:],Y_data_train1)
 # print (accuracy_score(Ynoise,mem4.predict(Xnoise[:,[5,7,12],:])), "- точность на веществах")
 #mem4.predict(Xnoise[:,[5,7,12],:])
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-print ("GaussMixture")
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+# print ("GaussMixture")
 paramGrid5={'up_bound':np.arange(0.1,9,0.5)*(-1),'n_components':range(1,3), 'covariance_type':['full'],'init_params':['kmeans']}
 model5 =GaussMixtureClassifaer()
 mem5 = Pipeline([('features', Features(function="fft", band=[[1,3]])),('scaler', StandardScaler()),
-                 ('oneclasscv', OneClassCV(Pipeline([('oneclasscv',model5)]),paramGrid5))])
-mem5.fit(X_data_train1[:,[5,7,12],:],Y_data_train1)
-print (mem5.predict(Xnoise[:,[5,7,12],:]))
-print (accuracy_score(Ynoise,mem5.predict(Xnoise[:,[5,7,12],:])), "- точность на веществах")
-print (mem5.predict(X_data_train1[:,[5,7,12],:]))
-print (accuracy_score(Y_data_train1,mem5.predict(X_data_train1[:,[5,7,12],:])), "- точность на ТНТ")
+                 ('oneclasscv', OneClassCV(Pipeline([('oneclasscv',model5)]),paramGrid5,1))])
+# mem5.fit(X_data_train1[:,[5,7,12],:],Y_data_train1)
+# print (mem5.predict(Xnoise[:,[5,7,12],:]))
+# print (accuracy_score(Ynoise,mem5.predict(Xnoise[:,[5,7,12],:])), "- точность на веществах")
+# print (mem5.predict(X_data_train1[:,[5,7,12],:]))
+# print (accuracy_score(Y_data_train1,mem5.predict(X_data_train1[:,[5,7,12],:])), "- точность на ТНТ")
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+# print ("AANN")#np.arange(0.1,2.5,0.1)
+paramGrid6={'up_bound':np.arange(0.1,2.5,0.1),'hidden_layer_sizes':[(1)],'solver':['lbfgs'],'alpha':[(10**(x*(-1))) for x in range(-3,3)]}
+model6 =AANN()
+mem6 = Pipeline([('features', Features(function="fft", band=[[1,3]])),('scaler', StandardScaler()),
+                 ('oneclasscv', OneClassCV(Pipeline([('oneclasscv',model6)]),paramGrid6,2))])
+
+# mem6.fit(X_data_train1[:,[5,7,12],:],Y_data_train1)
+# print (mem6.predict(Xnoise[:,[5,7,12],:]))
+# print (accuracy_score(Ynoise,mem6.predict(Xnoise[:,[5,7,12],:])), "- точность на веществах")
+# print (mem6.predict(X_data_train1[:,[5,7,12],:]))
+# print (accuracy_score(Y_data_train1,mem6.predict(X_data_train1[:,[5,7,12],:])), "- точность на ТНТ")
+members=[mem1,mem2,mem3,mem4,mem5,mem6]
+def Ensemble(members,xTrain,yTrain,xTest,verbose=True):
+    results=[]
+    for m in members:
+        m.fit(xTrain,yTrain)
+        predicted = m.predict(xTest)
+        predicted=np.array(predicted)
+        predicted[predicted<0]=0
+        results.append(predicted)
+    boundary = len(members)//2
+
+    ensembleResult = [1 if r>boundary else 0 for r in np.sum(results,axis=0)]
+    if verbose==True:
+        print(np.array(results))
+        print (ensembleResult)
+    return ensembleResult
+ensembleResult = Ensemble(members,X_data_train1[:,[5,7,12],:],Y_data_train1,Xnoise[:,[5,7,12],:])
+print(accuracy_score(Ynoise,ensembleResult),"Точность ансамбля на веществах")
+ensembleResult = Ensemble(members,X_data_train1[:,[5,7,12],:],Y_data_train1,X_data_train1[:,[5,7,12],:])
+print(accuracy_score(Y_data_train1,ensembleResult),"Точность ансамбля на ТНТ")
