@@ -12,39 +12,101 @@ from AutoAssociativeNN import AANN
 import numpy as np
 from sklearn.metrics import accuracy_score
 from sklearn.covariance import OAS, MinCovDet,LedoitWolf,EmpiricalCovariance
-#from sklearn.mixture import GaussianMixture, BayesianGaussianMixture
 from GMClassifaer import GaussMixtureClassifaer
-from sklearn.pipeline import make_pipeline
-from sklearn.isotonic import IsotonicRegression
+import data
+from data import load_data
 
-mainDir = '/home/dmv/Desktop/Rat'
-day = ["2020_09_09"] # если пустой массив - выбирает все дни, дни задаются датой как в названии папки с экспериментом
-year = '2020'
-rat=['n51']
-drugs=[]
-Search = Searcher(mainDir=mainDir,year=year,rat=rat,verbose=False,metaDataByRatNum={},day=day,drugs=drugs)
-Search.fileSearch()
-jsonData = Search.parsJson()
-L=RatDataLoader(metaDataByRatNum=jsonData,mainDir=mainDir,year=year,rat=rat,verbose=False,day=day,drugs=drugs)
-Data = L.loadData()
-# загрузка и предобработка данных
-Y_data_train1 = Data[rat[0]][day[0]]['1']['trainEvent']
-X_data_train1 = Data[rat[0]][day[0]]['1']['train']
-Y_data_test1 = Data[rat[0]][day[0]]['1']['testEvent']
-X_data_test1 = Data[rat[0]][day[0]]['1']['test']
-Y_data_test2 = Data[rat[0]][day[0]]['2']['testEvent']
-X_data_test2 = Data[rat[0]][day[0]]['2']['test']
-Y_data_train2 = Data[rat[0]][day[0]]['2']['trainEvent']
-X_data_train2 = Data[rat[0]][day[0]]['2']['train']
-#Y_data_test2 = Data[rat[0]][day[0]]['2']['trainEvent']
-#X_data_test2 = Data[rat[0]][day[0]]['2']['train']
-Xnoise = np.vstack([X_data_train1[Y_data_train1!=1],X_data_test1[Y_data_test1!=1],X_data_train2[Y_data_train2!=1],X_data_test2[Y_data_test2!=1]])
-Ynoise = np.concatenate([Y_data_train1[Y_data_train1!=1],Y_data_test1[Y_data_test1!=1],Y_data_test2[Y_data_test2!=1],Y_data_train2[Y_data_train2!=1]])
-X_data_train1 = X_data_train1[Y_data_train1==1]
-Y_data_train1 = Y_data_train1[Y_data_train1==1]
-X_data_test1=X_data_test1[Y_data_test1==1]
-Y_data_test1=Y_data_test1[Y_data_test1==1]
-Ynoise[Ynoise!=1]=1
+# mainDir = '/home/dmv/Desktop/Rat'
+# day = ["2020_09_09"] # если пустой массив - выбирает все дни, дни задаются датой как в названии папки с экспериментом
+# year = '2020'
+# rat=['n51']
+# drugs=[]
+# Search = Searcher(mainDir=mainDir,year=year,rat=rat,verbose=False,metaDataByRatNum={},day=day,drugs=drugs)
+# Search.fileSearch()
+# jsonData = Search.parsJson()
+# L=RatDataLoader(metaDataByRatNum=jsonData,mainDir=mainDir,year=year,rat=rat,verbose=False,day=day,drugs=drugs)
+# Data = L.loadData()
+# # загрузка и предобработка данных
+# Y_data_train1 = Data[rat[0]][day[0]]['1']['trainEvent']
+# X_data_train1 = Data[rat[0]][day[0]]['1']['train']
+# Y_data_test1 = Data[rat[0]][day[0]]['1']['testEvent']
+# X_data_test1 = Data[rat[0]][day[0]]['1']['test']
+# Y_data_test2 = Data[rat[0]][day[0]]['2']['testEvent']
+# X_data_test2 = Data[rat[0]][day[0]]['2']['test']
+# Y_data_train2 = Data[rat[0]][day[0]]['2']['trainEvent']
+# X_data_train2 = Data[rat[0]][day[0]]['2']['train']
+# #Y_data_test2 = Data[rat[0]][day[0]]['2']['trainEvent']
+# #X_data_test2 = Data[rat[0]][day[0]]['2']['train']
+# Xnoise = np.vstack([X_data_train1[Y_data_train1!=1],X_data_test1[Y_data_test1!=1],X_data_train2[Y_data_train2!=1],X_data_test2[Y_data_test2!=1]])
+# Ynoise = np.concatenate([Y_data_train1[Y_data_train1!=1],Y_data_test1[Y_data_test1!=1],Y_data_test2[Y_data_test2!=1],Y_data_train2[Y_data_train2!=1]])
+# X_data_train1 = X_data_train1[Y_data_train1==1]
+# Y_data_train1 = Y_data_train1[Y_data_train1==1]
+# X_data_test1=X_data_test1[Y_data_test1==1]
+# Y_data_test1=Y_data_test1[Y_data_test1==1]
+# Ynoise[Ynoise!=1]=1
+
+trainFileName = ["08.10.2020.FI118.1.plx"]
+testFileName = ["08.10.2020.FI118.2.plx"]
+
+numCh = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+data.NUM_EEG_CHANNELS = len(numCh)
+data.NUM_ALL_CHANNELS = data.NUM_EEG_CHANNELS + 2
+data.IDXS_EEG_CHANNELS = slice(0, data.NUM_EEG_CHANNELS)
+data.IDX_BREATH_CHANNEL = data.NUM_EEG_CHANNELS
+data.ALTER_STIM_CHANNEL = True
+piece = 5
+data.DECIMATE=1
+
+data.SAMPLE_RATE = 1000
+data.LEN_STIMUL_SECS = 5
+data.LEN_STIMUL = piece * data.SAMPLE_RATE
+data.BEFORE_STIMUL = data.LEN_STIMUL
+print (data.BEFORE_STIMUL)
+train = load_data('odor',
+                  dir="/home/dmv/Desktop/Rat/2020/2020_10_08-i118-5odor-18chan-dtb",
+                  series=trainFileName,
+                  categs=[1,2,4,8,16], take_signal='stimul', take_ecg=False, det_breath=2, take_air=False,
+                  piece=5, take_spikes=False, verbose=False,add_breath=False)
+
+
+test = load_data('odor',
+              dir="/home/dmv/Desktop/Rat/2020/2020_10_08-i118-5odor-18chan-dtb",
+              series=testFileName,
+              categs=[1,2,4,8,16], take_signal='stimul', take_ecg=False, det_breath=2, take_air=False,
+              piece=5, take_spikes=False, verbose=False,add_breath=False)
+
+
+
+Target_drug = [1]
+
+X_data_train = train[0].get('').get('').get(trainFileName[0])[0]
+
+Y_data_train = train[0].get('').get('').get(trainFileName[0])[1]
+
+X_data_train = X_data_train[Y_data_train==Target_drug[0]]
+
+Y_data_train = Y_data_train[Y_data_train == Target_drug[0]]
+
+X_data_test = test[0].get('').get('').get(testFileName[0])[0]
+
+Y_data_test = test[0].get('').get('').get(testFileName[0])[1]
+
+Y_data_test[Y_data_test!=Target_drug[0]] = 0
+#Test_nature_noise = np.vstack([X_data_test[Y_data_test!=1]])
+
+#Test_nature_noise_target =np.concatenate([Y_data_test[Y_data_test!=1]])
+# trainEvent = train[0].get('').get('').get(trainFileName)[1]
+# trainData = train[0].get('').get('').get(trainFileName)[0]
+# print (trainData.shape)
+#
+# trainTestCatages = [trainCategs, testCategs]
+# if testFileName != "":
+#     for i, j in zip(trainTestCatages[0], trainTestCatages[1]): # переобозначаю метки, если клапана менялись
+#         if i != j:
+#             testEvent[testEvent == j] = i * -1
+#     testEvent[testEvent < 0] = testEvent[testEvent < 0] * -1
+
+
 
 #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 #print ("OneClassSVM")
@@ -128,7 +190,13 @@ def Ensemble(members,xTrain,yTrain,xTest,verbose=True):
         print(np.array(results))
         print (ensembleResult)
     return ensembleResult
-ensembleResult = Ensemble(members,X_data_train1[:,[5,7,12],:],Y_data_train1,Xnoise[:,[5,7,12],:])
-print(accuracy_score(Ynoise,ensembleResult),"Точность ансамбля на веществах")
-ensembleResult = Ensemble(members,X_data_train1[:,[5,7,12],:],Y_data_train1,X_data_train1[:,[5,7,12],:])
-print(accuracy_score(Y_data_train1,ensembleResult),"Точность ансамбля на ТНТ")
+
+ensembleResult = Ensemble(members,X_data_train[:,:,:],Y_data_train,X_data_test[:,:,:])
+
+print (Y_data_test, "естественный шум")
+print (ensembleResult, "результат классификации")
+print(accuracy_score(Y_data_test,ensembleResult),"Точность ансамбля на веществах")
+
+# ensembleResult = Ensemble(members,X_data_train1[:,[5,7,12],:],Y_data_train1,X_data_train1[:,[5,7,12],:])
+#
+# print(accuracy_score(Y_data_train1,ensembleResult),"Точность ансамбля на ТНТ")
